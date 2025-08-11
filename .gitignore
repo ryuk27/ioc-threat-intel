@@ -60,7 +60,3 @@ api_keys.py
 test_*.txt
 *_test.txt
 test_output/
-
-# Documentation files (exclude from repo)
-code_documentation.md
-IOC_Code_Documentation.pdf
