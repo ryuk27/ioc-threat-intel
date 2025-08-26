@@ -230,14 +230,6 @@ You can modify these settings in the `CONFIG` dictionary:
 - `high_abuse_score`: AbuseIPDB confidence score for high risk (default: 75)
 - `output_format`: 'markdown' or 'csv' (default: 'markdown')
 
-## Testing
-
-Run the test suite to verify functionality:
-
-```bash
-python test_app.py
-```
-
 ## Error Handling
 
 The tool handles:
