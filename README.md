@@ -87,7 +87,7 @@ cp .env.example .env
 | VirusTotal | `VT_API_KEY` | Yes (limits apply) | https://www.virustotal.com |
 | AbuseIPDB | `ABUSEIPDB_API_KEY` | Yes (limits apply) | https://www.abuseipdb.com |
 | AlienVault OTX | `OTX_API_KEY` | Yes | https://otx.alienvault.com |
-| Shodan | `SHODAN_API_KEY` | No (paid only) | https://www.shodan.io |
+| Shodan | `SHODAN_API_KEY` | Yes | https://www.shodan.io |
 | **Feodo Tracker** | Not required | Yes (no auth) | https://feodotracker.abuse.ch |
 | **URLhaus** | Not required | Yes (no auth) | https://urlhaus.abuse.ch |
 
@@ -408,9 +408,8 @@ The tool gracefully handles:
 Built by **Ryuk27** — Threat Intelligence Security Engineer
 
 **Find me on:**
-- GitHub: https://github.com/ryuk27
-- LinkedIn: [Your LinkedIn Profile URL]
-- Portfolio: [Your Portfolio URL]
+- [GitHub](https://github.com/ryuk27)
+- [LinkedIn](https://www.linkedin.com/in/ram0912/)
 
 ---
 
