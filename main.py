@@ -115,8 +115,16 @@ def print_ioc_result(result: dict):
     # MITRE
     mitre = result['mitre']
     print(f"\n  MITRE ATT&CK:")
-    print(f"    Technique: {mitre['technique_id']} -- {mitre['technique_name']}")
+    print(f"    Primary: {mitre['technique_id']} -- {mitre['technique_name']}")
     print(f"    Tactic: {mitre['tactic']}")
+    print(f"    Confidence: {mitre.get('confidence_score', 65)}%")
+    
+    # Additional techniques
+    additional = mitre.get('additional_techniques', [])
+    if additional:
+        print(f"    Additional Techniques:")
+        for tech in additional:
+            print(f"      - {tech['technique_id']} -- {tech['technique_name']}")
     
     # Verdict
     if result['risk_level'] in ['CRITICAL', 'HIGH']:

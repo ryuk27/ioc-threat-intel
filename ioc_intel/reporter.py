@@ -62,12 +62,54 @@ def _aggregate_ioc_results(results: List[Dict[str, Any]]) -> List[Dict[str, Any]
             'ioc_type': result.get('ioc_type', 'unknown'),
             'sources': result.get('sources', {}),
             'risk_score': result.get('risk_score', 0),
-            'risk_level': result.get('risk_level', 'CLEAN')
+            'risk_level': result.get('risk_level', 'CLEAN'),
+            'mitre_mapping': result.get('mitre', {})
         }
+        
+        # Add MITRE mapping to sources for easy access in report
+        if 'mitre_mapping' in ioc_summary and ioc_summary['mitre_mapping']:
+            ioc_summary['sources']['mitre_mapping'] = ioc_summary['mitre_mapping']
+        
         ioc_summaries.append(ioc_summary)
     
     # Sort by risk score (highest first)
     return sorted(ioc_summaries, key=lambda x: -x['risk_score'])
+
+
+def _format_mitre_section(mitre_mapping: Dict[str, Any]) -> str:
+    """
+    Format MITRE ATT&CK mapping for report display.
+    
+    Args:
+        mitre_mapping: MITRE mapping result with primary and additional techniques
+        
+    Returns:
+        str: Formatted MITRE section for report
+    """
+    output = "### MITRE ATT&CK Mapping\n\n"
+    
+    # Primary technique
+    output += "**Primary Technique:**\n"
+    output += f"- **[{mitre_mapping.get('technique_id')}] {mitre_mapping.get('technique_name')}**\n"
+    output += f"  - Tactic: {mitre_mapping.get('tactic')}\n"
+    output += f"  - Description: {mitre_mapping.get('description')}\n"
+    output += f"  - Confidence: {mitre_mapping.get('confidence_score', 65)}%\n"
+    
+    # Additional techniques
+    additional = mitre_mapping.get('additional_techniques', [])
+    if additional:
+        output += "\n**Additional Techniques:**\n"
+        for tech in additional:
+            output += f"- [{tech.get('technique_id')}] {tech.get('technique_name')}\n"
+            output += f"  - Tactic: {tech.get('tactic')}\n"
+    
+    # Source tags
+    source_tags = mitre_mapping.get('source_tags', [])
+    if source_tags:
+        output += f"\n**Source Tags:** {', '.join(source_tags)}\n"
+    
+    output += "\n"
+    return output
 
 
 def _calculate_composite_score(sources: Dict[str, Dict[str, Any]]) -> int:
@@ -170,6 +212,11 @@ def _write_ioc_section(f, idx: int, ioc_summary: Dict[str, Any]) -> None:
         f.write("**AlienVault OTX:**\n")
         f.write(f"- Pulse Count: {otx.get('pulse_count', 0)}\n")
         f.write("\n")
+    
+    # MITRE ATT&CK mapping
+    mitre = ioc_summary['sources'].get('mitre_mapping', {})
+    if mitre:
+        f.write(_format_mitre_section(mitre))
     
     f.write("---\n\n")
 

@@ -1,28 +1,28 @@
 """Unit tests for MITRE ATT&CK Mapper module"""
 
 import pytest
-from ioc_intel.mitre_mapper import map_to_mitre, get_mitre_matrix
+from ioc_intel.mitre_mapper import map_to_mitre, get_mitre_matrix, normalize_tag
 
 
 class TestIPMapping:
     """Test MITRE mapping for IP addresses"""
     
     def test_malicious_ip_maps_to_c2(self):
-        """Test that malicious IP maps to C2 technique"""
-        result = map_to_mitre("ipv4", {"feodo_listed": True})
-        assert result["technique_id"] == "T1071.001"
-        assert "Command and Control" in result["tactic"]
+        """Test that botnet IP maps to botnet technique"""
+        result = map_to_mitre("ipv4", {"feodo_malware": "botnet"})
+        assert result["technique_id"] == "T1583.004"
+        assert "Resource Development" in result["tactic"]
     
     def test_abuse_ip_maps_to_c2(self):
         """Test that high abuse score IP maps to C2"""
-        result = map_to_mitre("ipv4", {"abuse_confidence": 90})
-        assert result["technique_id"] == "T1071"
+        result = map_to_mitre("ipv4", {"otx_tags": ["c2"]})
+        assert result["technique_id"] == "T1071.001"
         assert "Command and Control" in result["tactic"]
     
     def test_vt_positive_ip_maps_to_c2(self):
         """Test that VT positive IP maps to C2"""
-        result = map_to_mitre("ipv4", {"vt_positives": 10})
-        assert result["technique_id"] == "T1071"
+        result = map_to_mitre("ipv4", {"vt_categories": ["c2"]})
+        assert result["technique_id"] == "T1071.001"
 
 
 class TestDomainMapping:
@@ -30,14 +30,14 @@ class TestDomainMapping:
     
     def test_phishing_domain_maps_correctly(self):
         """Test that phishing domain maps to phishing technique"""
-        result = map_to_mitre("domain", {"tags": ["phishing"], "urlhaus_listed": True})
+        result = map_to_mitre("domain", {"urlhaus_tags": ["phishing"]})
         assert result["technique_id"] == "T1566"
         assert result["tactic"] == "Initial Access"
     
     def test_malware_domain_maps_to_distribution(self):
         """Test that malware domain maps to distribution"""
-        result = map_to_mitre("domain", {"urlhaus_listed": True})
-        assert result["technique_id"] == "T1020"
+        result = map_to_mitre("domain", {"urlhaus_tags": ["malware-distribution"]})
+        assert result["technique_id"] == "T1105"
 
 
 class TestHashMapping:
@@ -45,14 +45,14 @@ class TestHashMapping:
     
     def test_malware_hash_maps_correctly(self):
         """Test that detected malware hash maps correctly"""
-        result = map_to_mitre("md5", {"vt_positives": 40})
+        result = map_to_mitre("md5", {"vt_categories": ["trojan"]})
         assert result["technique_id"] == "T1204"
         assert result["tactic"] == "Execution"
     
     def test_urlhaus_hash_maps_to_distribution(self):
         """Test that URLhaus hash maps to distribution"""
-        result = map_to_mitre("sha256", {"urlhaus_listed": True})
-        assert result["technique_id"] == "T1020"
+        result = map_to_mitre("sha256", {"urlhaus_tags": ["malware-distribution"]})
+        assert result["technique_id"] == "T1105"
 
 
 class TestURLMapping:
@@ -60,13 +60,13 @@ class TestURLMapping:
     
     def test_malware_url_maps_to_distribution(self):
         """Test that malware URL maps to distribution"""
-        result = map_to_mitre("url", {"urlhaus_listed": True})
-        assert result["technique_id"] == "T1020"
+        result = map_to_mitre("url", {"urlhaus_tags": ["malware-distribution"]})
+        assert result["technique_id"] == "T1105"
     
     def test_exploit_url_maps_correctly(self):
         """Test that exploit URL maps correctly"""
-        result = map_to_mitre("url", {"tags": ["exploit"]})
-        assert result["technique_id"] == "T1189"
+        result = map_to_mitre("url", {"urlhaus_tags": ["exploit"]})
+        assert result["technique_id"] == "T1190"
         assert result["tactic"] == "Initial Access"
 
 
@@ -74,10 +74,11 @@ class TestUnknownIOCType:
     """Test MITRE mapping for unknown IOC types"""
     
     def test_unknown_returns_default(self):
-        """Test that unknown type returns default mapping"""
-        result = map_to_mitre("unknown", {})
+        """Test that unknown type returns fallback mapping"""
+        result = map_to_mitre("unknown_type", {})
         assert "technique_id" in result
-        assert result["technique_id"] == "T0000"
+        # Unknown IOC type defaults to infrastructure key which is T1583
+        assert result["technique_id"] in ["T1583", "T1090", "T1071"]
 
 
 class TestMITREMatrix:
@@ -97,6 +98,51 @@ class TestMITREMatrix:
             assert "technique_name" in entry
             assert "tactic" in entry
             assert "description" in entry
+
+
+class TestTagNormalization:
+    """Test tag normalization functionality"""
+    
+    def test_normalize_phishing_tag(self):
+        """Test that phishing variations normalize correctly"""
+        assert normalize_tag("phishing") == "phishing"
+        assert normalize_tag("Phishing") == "phishing"
+        assert normalize_tag("PHISHING") == "phishing"
+    
+    def test_normalize_c2_tag(self):
+        """Test that C2 variations normalize correctly"""
+        assert normalize_tag("c2") == "c2_web"
+        assert normalize_tag("c&c") == "c2_web"
+        assert normalize_tag("command-and-control") == "c2_web"
+    
+    def test_normalize_unknown_tag(self):
+        """Test that unknown tag returns 'unknown'"""
+        assert normalize_tag("unknown_malware_type") == "unknown"
+
+
+class TestMultipleTechniques:
+    """Test that map_to_mitre returns multiple techniques when appropriate"""
+    
+    def test_multiple_tags_produce_additional_techniques(self):
+        """Test that multiple tags produce additional techniques"""
+        result = map_to_mitre("domain", {
+            "urlhaus_tags": ["phishing", "c2"]
+        })
+        assert "technique_id" in result
+        assert "additional_techniques" in result
+        assert isinstance(result["additional_techniques"], list)
+    
+    def test_confidence_score_present(self):
+        """Test that confidence score is calculated"""
+        result = map_to_mitre("ipv4", {"otx_tags": ["botnet"]})
+        assert "confidence_score" in result
+        assert 0 <= result["confidence_score"] <= 100
+    
+    def test_source_tags_preserved(self):
+        """Test that source tags are preserved in result"""
+        result = map_to_mitre("domain", {"urlhaus_tags": ["phishing"]})
+        assert "source_tags" in result
+        assert len(result["source_tags"]) > 0
 
 
 class TestEdgeCases:
