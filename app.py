@@ -2,21 +2,27 @@ import requests
 import json
 import time
 import argparse
+import os
 from pathlib import Path
 from datetime import datetime
 import ipaddress
 import hashlib
 import re
+from dotenv import load_dotenv
 
-# Configuration
+# Load environment variables from .env file
+load_dotenv()
+
+# Configuration — loaded from environment variables
 CONFIG = {
-    'virustotal_api_key': 'YOUR_VIRUSTOTAL_API_KEY',
-    'abuseipdb_api_key': 'YOUR_ABUSEIPDB_API_KEY',
-    'shodan_api_key': 'YOUR_SHODAN_API_KEY',
-    'rate_limit_delay': 15,  # seconds between API calls
-    'malicious_threshold': 5,  # minimum detections to consider malicious
-    'high_abuse_score': 75,  # AbuseIPDB confidence score for high risk
-    'output_format': 'markdown'  # or 'csv'
+    'virustotal_api_key': os.getenv('VT_API_KEY', ''),
+    'abuseipdb_api_key': os.getenv('ABUSEIPDB_API_KEY', ''),
+    'shodan_api_key': os.getenv('SHODAN_API_KEY', ''),
+    'otx_api_key': os.getenv('OTX_API_KEY', ''),
+    'rate_limit_delay': int(os.getenv('RATE_LIMIT_DELAY', 15)),
+    'malicious_threshold': int(os.getenv('MALICIOUS_THRESHOLD', 5)),
+    'high_abuse_score': int(os.getenv('HIGH_ABUSE_SCORE', 75)),
+    'output_format': os.getenv('OUTPUT_FORMAT', 'markdown')
 }
 
 class IOCAnalyzer:
@@ -338,19 +344,22 @@ class IOCAnalyzer:
 def validate_config():
     """Check if API keys are configured"""
     missing_keys = []
-    if CONFIG['virustotal_api_key'] == 'YOUR_VIRUSTOTAL_API_KEY':
-        missing_keys.append('VirusTotal')
-    if CONFIG['abuseipdb_api_key'] == 'YOUR_ABUSEIPDB_API_KEY':
-        missing_keys.append('AbuseIPDB')
-    if CONFIG['shodan_api_key'] == 'YOUR_SHODAN_API_KEY':
-        missing_keys.append('Shodan')
+    
+    if not CONFIG['virustotal_api_key']:
+        missing_keys.append('VT_API_KEY (VirusTotal)')
+    if not CONFIG['abuseipdb_api_key']:
+        missing_keys.append('ABUSEIPDB_API_KEY (AbuseIPDB)')
+    if not CONFIG['shodan_api_key']:
+        missing_keys.append('SHODAN_API_KEY (Shodan)')
     
     if missing_keys:
-        print("⚠️  Warning: The following API keys are not configured:")
+        print("⚠️  Warning: The following API keys are not configured in .env file:")
         for key in missing_keys:
             print(f"   - {key}")
-        print("   The application will still work but with limited functionality.")
-        print("   Please update the CONFIG section in the script with your API keys.\n")
+        print("   The application will work with available keys but with limited functionality.")
+        print("   Please add these keys to your .env file.\n")
+    else:
+        print("✅ All API keys configured successfully.\n")
 
 def main():
     parser = argparse.ArgumentParser(description='IOC Threat Intelligence Correlation Engine')
