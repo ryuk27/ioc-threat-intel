@@ -143,10 +143,15 @@ python main.py --file iocs.txt --output report.md --quiet
       [+] VirusTotal: 45 malicious, 3 suspicious
       [+] AbuseIPDB: Confidence 94%, 312 reports
       [!] Feodo Tracker: LISTED — Known Botnet C2 (Emotet)
+      [+] AlienVault OTX: 7 pulses
     
     MITRE ATT&CK:
-      Technique: T1071.001 — Web Protocols
+      Primary: T1071.001 — Web Protocols
       Tactic: Command and Control
+      Confidence: 95%
+      Additional Techniques:
+        - T1090 — Proxy
+        - T1583 — Acquire Infrastructure
     
     Verdict: [!] MALICIOUS — Recommend immediate block
 ```
@@ -252,15 +257,81 @@ Risk scores are calculated from multiple weighted signals:
 
 ## MITRE ATT&CK Coverage
 
-| Technique ID | Technique Name | Tactic |
-|---|---|---|
-| T1071 | Application Layer Protocol | Command and Control |
-| T1071.001 | Web Protocols | Command and Control |
-| T1566 | Phishing | Initial Access |
-| T1204 | User Execution | Execution |
-| T1041 | Exfiltration Over C2 Channel | Exfiltration |
-| T1020 | Automated Exfiltration | Exfiltration |
-| T1189 | Drive-by Compromise | Initial Access |
+**24+ Techniques** across 8 tactics — dynamically mapped based on threat feed tags with confidence scoring
+
+### Coverage by Tactic
+
+| Tactic | Techniques | Trigger Keywords |
+|--------|---|---|
+| **Command and Control** | T1071, T1071.001, T1071.004, T1090, T1219 | c2, botnet, c&c, c2_ip, proxy, tor, rat |
+| **Initial Access** | T1566, T1566.002, T1189, T1190 | phishing, spearphishing, driveby, exploit |
+| **Execution** | T1204, T1059 | trojan, malware, script, execution |
+| **Credential Access** | T1555, T1056.001 | stealer, infostealer, keylogger |
+| **Persistence** | T1543, T1219 | backdoor, rat, persistence |
+| **Defense Evasion** | T1027, T1027.002 | obfuscated, packer, obfuscation |
+| **Collection & Exfil** | T1041, T1020 | exfiltration, exfil, data-theft |
+| **Impact** | T1486, T1498, T1485 | ransomware, ddos, wiper, impact |
+| **Resource Development** | T1583, T1583.004, T1105 | infrastructure, botnet, malware-distribution |
+
+### Full Technique Reference
+
+```
+Command and Control (5):
+  T1071 — Application Layer Protocol
+  T1071.001 — Web Protocols (HTTP/HTTPS)
+  T1071.004 — DNS (DNS Tunneling)
+  T1090 — Proxy (Tor, VPN, anonymization)
+  T1219 — Remote Access Software (RAT)
+
+Initial Access (4):
+  T1566 — Phishing
+  T1566.002 — Spearphishing Link
+  T1189 — Drive-by Compromise
+  T1190 — Exploit Public-Facing Application
+
+Execution (2):
+  T1204 — User Execution
+  T1059 — Command and Scripting Interpreter
+
+Credential Access (2):
+  T1555 — Credentials from Password Stores
+  T1056.001 — Keylogging
+
+Persistence (2):
+  T1543 — Create or Modify System Process
+  T1219 — Remote Access Software
+
+Defense Evasion (2):
+  T1027 — Obfuscated Files or Information
+  T1027.002 — Software Packing
+
+Collection & Exfiltration (2):
+  T1041 — Exfiltration Over C2 Channel
+  T1020 — Automated Exfiltration
+
+Impact (3):
+  T1486 — Data Encrypted for Impact (Ransomware)
+  T1498 — Network Denial of Service (DDoS)
+  T1485 — Data Destruction (Wiper)
+
+Resource Development (3):
+  T1583 — Acquire Infrastructure
+  T1583.004 — Server — Botnet
+  T1105 — Ingress Tool Transfer
+```
+
+**Confidence Scoring:**
+- 65%+ baseline (no external tags)
+- +10% per confirmed threat feed tag
+- Up to 100% with multiple sources
+
+**Data-Driven Mapping:**
+Unlike static IOC-type-based mapping, the engine now:
+1. Extracts tags from all threat feeds (URLhaus, OTX, VirusTotal, Feodo)
+2. Normalizes tags (handles phishing, Phishing, phishing-domain variations)
+3. Maps tags to applicable techniques
+4. Returns primary + additional techniques
+5. Provides confidence scores for each mapping
 
 ---
 
@@ -276,13 +347,16 @@ pip install pytest
 pytest tests/ -v
 
 # Run specific test file
-pytest tests/test_validator.py -v
+pytest tests/test_mitre_mapper.py -v
 
 # Run with coverage
 pytest tests/ --cov=ioc_intel
 ```
 
-**Current Status:** ✅ 47 tests passing
+**Current Status:** ✅ 53 tests passing
+- 20 MITRE mapper tests (24+ technique coverage, tag normalization, multi-source mapping)
+- 20 risk scorer tests (composite scoring, severity levels)
+- 13 IOC validator tests (type detection, format validation)
 
 ---
 
