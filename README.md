@@ -214,9 +214,6 @@ ioc-threat-intel/
 │   ├── test_validator.py            # IOC detection tests
 │   ├── test_scorer.py               # Risk scoring tests
 │   └── test_mitre_mapper.py         # MITRE mapping tests
-├── samples/
-│   ├── sample_iocs.txt              # Example IOC file
-│   └── sample_report.md             # Example report output
 ├── docs/
 │   └── case-study.md                # Real-world investigation scenario
 ├── .env.example                     # Template for API keys
