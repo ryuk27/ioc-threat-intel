@@ -405,7 +405,7 @@ The tool gracefully handles:
 
 ## Author
 
-Built by **Ryuk27** — Threat Intelligence Security Engineer
+Built by **Ram Vinchurkar** — Cybersecurity Student
 
 **Find me on:**
 - [GitHub](https://github.com/ryuk27)
