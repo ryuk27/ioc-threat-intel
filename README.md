@@ -87,7 +87,7 @@ cp .env.example .env
 | VirusTotal | `VT_API_KEY` | Yes (limits apply) | https://www.virustotal.com |
 | AbuseIPDB | `ABUSEIPDB_API_KEY` | Yes (limits apply) | https://www.abuseipdb.com |
 | AlienVault OTX | `OTX_API_KEY` | Yes | https://otx.alienvault.com |
-| Shodan | `SHODAN_API_KEY` | No (paid only) | https://www.shodan.io |
+| Shodan | `SHODAN_API_KEY` | Yes | https://www.shodan.io |
 | **Feodo Tracker** | Not required | Yes (no auth) | https://feodotracker.abuse.ch |
 | **URLhaus** | Not required | Yes (no auth) | https://urlhaus.abuse.ch |
 
