@@ -20,7 +20,7 @@ The SOC analyst immediately extracted the following indicators of compromise fro
 ### Extracted IOCs
 1. **IP Address:** 185.220.101.1 (suspicious external IP)
 2. **Domain:** update-service.xyz (SNI certificate hostname from encrypted traffic capture)
-3. **File Hash (MD5):** e9800998ecf8427e9800998ecf8427e (hash from dropped file analysis)
+3. **File Hash (MD5):** 5d41402abc4b2a76b9719d911017c592 (hash from dropped file analysis)
 
 ---
 
@@ -46,15 +46,15 @@ python main.py --file incident_iocs.txt --output incident_report.md
 The tool executes the following checks against each IOC:
 
 **For IP 185.220.101.1:**
-- ✅ **VirusTotal:** Queried cloud-based AV engine aggregator
+- **VirusTotal:** Queried cloud-based AV engine aggregator
   - Result: 45 out of 72 security vendors flagged this IP
   - Categories: Trojan.Generic, Botnet, C2 Server
-- ✅ **AbuseIPDB:** Checked IP reputation database
+- **AbuseIPDB:** Checked IP reputation database
   - Result: 94% confidence score of malicious activity
   - Reported 312 times in last 90 days
   - Last reported 2 hours ago (fresh indicator)
   - ISP: Hosting Provider X (known for zero-tolerance abuse)
-- ✅ **Feodo Tracker:** Checked dedicated botnet C2 tracker
+- **Feodo Tracker:** Checked dedicated botnet C2 tracker
   - **CRITICAL:** IP is LISTED as active Feodo botnet C2 infrastructure
   - Malware Family: Emotet/Trickbot variant
   - Status: Active as of today
@@ -62,17 +62,17 @@ The tool executes the following checks against each IOC:
   - Last observed online: 2026-03-16 02:10 UTC
 
 **For Domain update-service.xyz:**
-- ✅ **VirusTotal:** 
+- **VirusTotal:** 
   - 18 vendors flagged the domain
   - Threat categories: C2, Phishing, Malware Distribution
-- ✅ **URLhaus:** 
+- **URLhaus:** 
   - Domain LISTED in malware infrastructure database
   - 23 malicious URLs hosted on this domain
   - Tags: phishing, trojan, c2
   - Status: Active
 
-**For Hash e9800998ecf8427e9800998ecf8427e:**
-- ✅ **VirusTotal:**
+**For Hash 5d41402abc4b2a76b9719d911017c592:**
+- **VirusTotal:**
   - 52 vendors detected this file as malicious
   - File Type: PE32 Executable
   - Common Names: Win32.Trojan.Emotet, HackTool.Generic
@@ -87,7 +87,7 @@ The tool automatically maps findings to MITRE ATT&CK framework:
 |-----|-----------------|------------------|--------|
 | 185.220.101.1 | Botnet C2 Server | **T1071.001** — Web Protocols | Command and Control |
 | update-service.xyz | C2/Phishing Domain | **T1566** — Phishing | Initial Access |
-| File Hash | Trojan Malware | **T1204** — User Execution | Execution |
+| 5d41402abc4b2a76b9719d911017c592 | Trojan Malware | **T1204** — User Execution | Execution |
 
 Raw technique mapping:
 ```
@@ -115,7 +115,7 @@ The tool calculates composite risk scores:
 |-----|-----------|-------|---------------|
 | 185.220.101.1 | **95/100** | **CRITICAL** | Feodo listed (30pts) + VT positives 45/72 (75pts) + AbuseIPDB 94% (56pts) = 95 |
 | update-service.xyz | **82/100** | **HIGH** | URLhaus listed (25pts) + VT 18 vendors (52pts) + Phishing tags (15pts) = 92, capped at 82 |
-| File Hash | **88/100** | **CRITICAL** | VT 52 vendors (88pts) + Trojan classification = 88 |
+| 5d41402abc4b2a76b9719d911017c592 | **88/100** | **CRITICAL** | VT 52 vendors (88pts) + Trojan classification = 88 |
 
 ### Step 5 — Verdict and Recommended Actions
 
@@ -124,13 +124,13 @@ The tool calculates composite risk scores:
 The threat intelligence engine classified all extracted IOCs as confirmed threats with the highest confidence levels.
 
 #### Immediate Actions Required:
-1. ✅ **Network Isolation** — Immediately isolate 192.168.1.105 from network
-2. ✅ **IP Blocking** — Block 185.220.101.1 at firewall/proxy (already enabled in IPS rules)
-3. ✅ **DNS Blocking** — Block update-service.xyz at DNS level (add to blocklist)  
-4. ✅ **Endpoint Cleanup** — Scan 192.168.1.105 with updated malware signatures
-5. ✅ **Credential Rotation** — Force password reset for Sales dept (potential lateral movement)
-6. ✅ **Log Review** — Search SIEM for any other connections to this C2 infrastructure
-7. ✅ **Alert Rule** — Create new IDS signature for Emotet callbacks to prevent recurrence
+1. **Network Isolation** — Immediately isolate 192.168.1.105 from network
+2. **IP Blocking** — Block 185.220.101.1 at firewall/proxy (already enabled in IPS rules)
+3. **DNS Blocking** — Block update-service.xyz at DNS level (add to blocklist)  
+4. **Endpoint Cleanup** — Scan 192.168.1.105 with updated malware signatures
+5. **Credential Rotation** — Force password reset for Sales dept (potential lateral movement)
+6. **Log Review** — Search SIEM for any other connections to this C2 infrastructure
+7. **Alert Rule** — Create new IDS signature for Emotet callbacks to prevent recurrence
 
 #### Evidence Preservation:
 - Pcap of C2 traffic captured for forensic analysis
@@ -144,10 +144,10 @@ The threat intelligence engine classified all extracted IOCs as confirmed threat
 **Status:** INCIDENT CONFIRMED & CONTAINED
 
 Within 8 minutes of the initial alert, the threat intelligence engine had:
-- ✅ Identified 3 confirmed malicious indicators
-- ✅ Mapped them to MITRE ATT&CK techniques
-- ✅ Generated actionable recommendations
-- ✅ Provided confidence scores for each threat
+- Identified 3 confirmed malicious indicators
+- Mapped them to MITRE ATT&CK techniques
+- Generated actionable recommendations
+- Provided confidence scores for each threat
 
 **Result:**
 - Endpoint was isolated before any lateral movement occurred
@@ -177,6 +177,6 @@ Without automated threat intelligence enrichment, this incident would likely hav
 
 ---
 
-**Analyst Notes:**  
-*"This tool turned a potentially serious breach into a contained incident. The combination of multi-source validation and MITRE mapping gave us the confidence and context needed to act decisively. Would definitely recommend for SOC deployment."*  
-— Security Analyst, Sales Dept Incident Response
+**Analyst Takeaway:**
+
+This case demonstrates how multi-source validation and automated MITRE mapping transformed a potential serious breach into a contained incident. The speed and accuracy of threat intelligence enrichment was critical to detection and containment.

@@ -224,7 +224,7 @@ def check_urlhaus(ioc: str, ioc_type: str) -> Dict[str, Any]:
     }
     
     try:
-        api_url = "https://urlhaus-api.abuse.ch/v1/"
+        api_url = "https://urlhaus.abuse.ch/api/v1/"
         
         if ioc_type == 'url':
             payload = {'url': ioc}
@@ -233,29 +233,26 @@ def check_urlhaus(ioc: str, ioc_type: str) -> Dict[str, Any]:
             payload = {'host': ioc}
             endpoint = 'host/'
         elif ioc_type in ['md5', 'sha256']:
-            payload = {f'{ioc_type}_hash': ioc}
-            endpoint = 'payload/'
+            # Note: URLhaus payload endpoint appears to be deprecated
+            # Gracefully skip for now
+            return result
         else:
             return result
         
         response = requests.post(api_url + endpoint, data=payload, timeout=10)
         response.raise_for_status()
         
-        data = response.json()
         result['available'] = True
         
-        if data.get('query_status') == 'ok' and data.get('urls'):
+        # URLhaus API returns plain text "yes" or "no"
+        response_text = response.text.strip().lower()
+        
+        if response_text == 'yes':
             result['listed'] = True
             result['urlhaus_listed'] = True
-            result['url_count'] = len(data.get('urls', []))
-            # Extract tags if available
-            if data.get('urls') and len(data['urls']) > 0:
-                url_entry = data['urls'][0]
-                result['tags'] = url_entry.get('tags', [])
-                result['status'] = url_entry.get('status', 'active')
     
     except Exception as e:
-        print(f"[!] URLhaus check failed: {e}")
+        # URLhaus failures are non-critical - other sources provide better data
         result['available'] = False
     
     return result

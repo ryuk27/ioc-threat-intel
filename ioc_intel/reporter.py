@@ -53,33 +53,21 @@ def _aggregate_ioc_results(results: List[Dict[str, Any]]) -> List[Dict[str, Any]
     Returns:
         List of aggregated IOC summaries
     """
-    ioc_map = {}
+    ioc_summaries = []
     
     for result in results:
-        ioc = result.get('ioc', 'unknown')
-        ioc_type = result.get('ioc_type', 'unknown')
-        
-        if ioc not in ioc_map:
-            ioc_map[ioc] = {
-                'ioc': ioc,
-                'ioc_type': ioc_type,
-                'sources': {},
-                'risk_score': 0,
-                'risk_level': 'CLEAN'
-            }
-        
-        # Store source results
-        source = result.get('source', 'unknown')
-        ioc_map[ioc]['sources'][source] = result
-    
-    # Calculate risk scores
-    for ioc_data in ioc_map.values():
-        score = _calculate_composite_score(ioc_data['sources'])
-        ioc_data['risk_score'] = score
-        ioc_data['risk_level'] = get_risk_level(score)
+        # Use the already-calculated risk score from process_single_ioc
+        ioc_summary = {
+            'ioc': result.get('ioc', 'unknown'),
+            'ioc_type': result.get('ioc_type', 'unknown'),
+            'sources': result.get('sources', {}),
+            'risk_score': result.get('risk_score', 0),
+            'risk_level': result.get('risk_level', 'CLEAN')
+        }
+        ioc_summaries.append(ioc_summary)
     
     # Sort by risk score (highest first)
-    return sorted(ioc_map.values(), key=lambda x: -x['risk_score'])
+    return sorted(ioc_summaries, key=lambda x: -x['risk_score'])
 
 
 def _calculate_composite_score(sources: Dict[str, Dict[str, Any]]) -> int:

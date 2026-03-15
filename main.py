@@ -9,11 +9,15 @@ import argparse
 import sys
 from pathlib import Path
 from datetime import datetime
+from dotenv import load_dotenv
 from ioc_intel.validator import detect_ioc_type
 from ioc_intel.enricher import enrich_ioc
 from ioc_intel.scorer import calculate_score, get_risk_level
 from ioc_intel.mitre_mapper import map_to_mitre
 from ioc_intel.reporter import generate_report, generate_summary_stats
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 def print_banner():
@@ -179,7 +183,7 @@ Examples:
         input_file = Path(args.file)
         
         if not input_file.exists():
-            print(f"❌ Error: Input file not found — {args.file}")
+            print(f"[-] Error: Input file not found — {args.file}")
             sys.exit(1)
         
         if not args.quiet:
