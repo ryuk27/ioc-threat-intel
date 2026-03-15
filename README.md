@@ -334,9 +334,8 @@ The tool gracefully handles:
 Built by **Ryuk27** — Threat Intelligence Security Engineer
 
 **Find me on:**
-- GitHub: https://github.com/ryuk27
-- LinkedIn: [Your LinkedIn Profile URL]
-- Portfolio: [Your Portfolio URL]
+- [GitHub](https://github.com/ryuk27)
+- [LinkedIn](https://www.linkedin.com/in/ram0912/)
 
 ---
 
